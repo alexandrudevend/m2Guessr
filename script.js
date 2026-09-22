@@ -35,12 +35,18 @@ const levels = [
   },
 ];
 
-// ===== STATE ===== .
+// ===== STATE =====
 let currentIndex = 0;
 let totalScore = 0;
 let hasGuessed = false;
 let correctPoint = null;
 let guessPoint = null;
+
+// Zoom state
+let currentZoom = 1;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 3;
+const ZOOM_STEP = 0.4;
 
 // ===== DOM =====
 const startScreen = document.getElementById("startScreen");
@@ -57,6 +63,10 @@ const statusEl = document.getElementById("status");
 const btnNext = document.getElementById("btnNext");
 const finalScoreEl = document.getElementById("finalScore");
 const finalMessage = document.getElementById("finalMessage");
+
+const btnZoomIn = document.getElementById("btnZoomIn");
+const btnZoomOut = document.getElementById("btnZoomOut");
+const btnZoomReset = document.getElementById("btnZoomReset");
 
 // ===== HELPERS =====
 function showScreen(screen) {
@@ -117,6 +127,10 @@ function calcScore(p1, p2) {
   return { score, dist };
 }
 
+function applyZoom() {
+  minimapWrapper.style.transform = `scale(${currentZoom})`;
+}
+
 // ===== LOAD LEVEL =====
 function loadLevel(index) {
   const level = levels[index];
@@ -125,7 +139,11 @@ function loadLevel(index) {
   correctPoint = level.correct;
   guessPoint = null;
 
-  progressText.textContent = `Runda ${index + 1} / ${levels.length}`;
+  // Reset zoom
+  currentZoom = 1;
+  applyZoom();
+
+  progressText.textContent = `Round ${index + 1} / ${levels.length}`;
   levelName.textContent = level.name;
   photoImg.src = level.photo;
   mapImg.src = level.map;
@@ -134,12 +152,10 @@ function loadLevel(index) {
   btnNext.classList.add("hidden");
   btnNext.disabled = true;
 
-  setStatus(
-    "Click pe minimap ca să alegi locul unde crezi că a fost făcută poza.",
-  );
+  setStatus("Click on the minimap to pinpoint the location from the photo.");
 }
 
-// ===== CLICK PE MINIMAP =====
+// ===== CLICK ON MINIMAP =====
 minimapWrapper.addEventListener("click", (e) => {
   if (hasGuessed) return;
 
@@ -159,19 +175,37 @@ minimapWrapper.addEventListener("click", (e) => {
   const type = score >= 4000 ? "success" : score >= 2000 ? "info" : "error";
 
   setStatus(
-    `<span>Scor rundă: <strong>${score}</strong> / 5000 &nbsp;•&nbsp; Distanță: ${distPct}%</span>`,
+    `<span>Round score: <strong>${score}</strong> / 5000 &nbsp;•&nbsp; Distance: ${distPct}%</span>`,
     type,
   );
 
   btnNext.classList.remove("hidden");
   btnNext.disabled = false;
   btnNext.textContent =
-    currentIndex < levels.length - 1
-      ? "Următoarea rundă →"
-      : "Vezi rezultatul final";
+    currentIndex < levels.length - 1 ? "Next Round →" : "See Final Result";
 });
 
-// ===== BUTOANE =====
+// ===== ZOOM CONTROLS =====
+btnZoomIn.addEventListener("click", () => {
+  if (currentZoom < MAX_ZOOM) {
+    currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
+    applyZoom();
+  }
+});
+
+btnZoomOut.addEventListener("click", () => {
+  if (currentZoom > MIN_ZOOM) {
+    currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
+    applyZoom();
+  }
+});
+
+btnZoomReset.addEventListener("click", () => {
+  currentZoom = 1;
+  applyZoom();
+});
+
+// ===== BUTTONS =====
 document.getElementById("btnStart").addEventListener("click", () => {
   totalScore = 0;
   totalScoreEl.textContent = "0";
@@ -188,12 +222,12 @@ btnNext.addEventListener("click", () => {
     const percent = Math.round((totalScore / maxPossible) * 100);
 
     let msg = "";
-    if (percent >= 85) msg = "Excelent! Ai ochi de vultur.";
-    else if (percent >= 60) msg = "Foarte bine! Aproape perfect.";
-    else if (percent >= 40) msg = "Decent. Mai exersează puțin.";
-    else msg = "Mai încearcă! Poți mai bine.";
+    if (percent >= 85) msg = "Excellent! Eagle eyes!";
+    else if (percent >= 60) msg = "Very good! Almost perfect.";
+    else if (percent >= 40) msg = "Decent. Keep practicing.";
+    else msg = "Try again! You can do better.";
 
-    finalMessage.textContent = `${msg} (${percent}% din maxim)`;
+    finalMessage.textContent = `${msg} (${percent}% of maximum)`;
     showScreen(finalScreen);
   }
 });

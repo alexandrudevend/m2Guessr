@@ -1,61 +1,85 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Geo Minigame – 5 Runde</title>
+    <title>M2Guesr</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <!-- START SCREEN -->
     <div id="startScreen" class="screen active">
       <div class="center-box">
-        <h2>Geo Minigame</h2>
+        <img
+          src="https://picsum.photos/id/1/120/120"
+          alt="M2Guesr Logo"
+          class="logo"
+          id="gameLogo"
+        />
+        <h1>M2Guesr</h1>
         <p>
-          5 runde • Găsește pe minimap locul unde a fost făcută poza<br />
-          Scor maxim pe rundă: 5000 puncte
+          5 rounds • Find on the minimap where the photo was taken<br />
+          Max score per round: 5000 points
         </p>
-        <button id="btnStart">Începe jocul</button>
+        <button id="btnStart">Start Game</button>
       </div>
     </div>
 
     <!-- GAME SCREEN -->
     <div id="gameScreen" class="screen">
       <div class="top-bar">
-        <div class="progress" id="progressText">Runda 1 / 5</div>
-        <div class="score-live">Scor total: <span id="totalScore">0</span></div>
+        <div class="progress" id="progressText">Round 1 / 5</div>
+        <div class="score-live">
+          Total Score: <span id="totalScore">0</span>
+        </div>
       </div>
 
       <div class="game-grid">
-        <div class="panel photo-box">
-          <h3 id="levelName">Poza locației</h3>
-          <img id="photoImg" alt="Poza" />
+        <!-- LEFT: Photo -->
+        <div class="panel">
+          <h3 id="levelName">Location Photo</h3>
+          <div class="image-box">
+            <img id="photoImg" alt="Location photo" />
+          </div>
         </div>
 
-        <div class="panel">
-          <h3>Minimap – click ca să ghicești</h3>
-          <div class="minimap-wrapper" id="minimapWrapper">
-            <img id="mapImg" alt="Minimap" />
+        <!-- RIGHT: Minimap -->
+        <div class="panel minimap-panel">
+          <h3>Minimap</h3>
+          <p class="instruction">
+            Click on the minimap to pinpoint the exact location from the photo
+          </p>
+
+          <div class="minimap-container">
+            <div class="minimap-wrapper" id="minimapWrapper">
+              <img id="mapImg" alt="Minimap" />
+            </div>
+          </div>
+
+          <div class="zoom-controls">
+            <button id="btnZoomIn" title="Zoom In">+</button>
+            <button id="btnZoomOut" title="Zoom Out">−</button>
+            <button id="btnZoomReset" title="Reset Zoom">Reset</button>
           </div>
         </div>
       </div>
 
       <div class="status info" id="status">
-        Click pe minimap ca să alegi locul unde crezi că a fost făcută poza.
+        Click on the minimap to make your guess.
       </div>
 
       <div class="controls">
-        <button id="btnNext" class="hidden" disabled>Următoarea rundă →</button>
+        <button id="btnNext" class="hidden" disabled>Next Round →</button>
       </div>
     </div>
 
     <!-- FINAL SCREEN -->
     <div id="finalScreen" class="screen">
       <div class="center-box">
-        <h2>Joc terminat!</h2>
+        <h2>Game Over!</h2>
         <div class="big-score" id="finalScore">0</div>
-        <p id="finalMessage">Felicitări!</p>
-        <button id="btnReplay">Joacă din nou</button>
+        <p id="finalMessage">Well played!</p>
+        <button id="btnReplay">Play Again</button>
       </div>
     </div>
 
