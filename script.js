@@ -35,7 +35,7 @@ const levels = [
   },
 ];
 
-// ===== STATE =====
+// ===== STATE ===== .
 let currentIndex = 0;
 let totalScore = 0;
 let hasGuessed = false;
