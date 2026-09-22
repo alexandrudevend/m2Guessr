@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Găsește coordonate</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 20px;
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 10px;
+      }
+      p {
+        color: #94a3b8;
+        margin-bottom: 20px;
+      }
+      .wrapper {
+        position: relative;
+        display: inline-block;
+        max-width: 90vw;
+        cursor: crosshair;
+        border: 2px solid #38bdf8;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        max-height: 80vh;
+      }
+      .marker {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: #22c55e;
+        border: 3px solid white;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      .result {
+        margin-top: 20px;
+        font-size: 1.3rem;
+        background: #1e293b;
+        padding: 12px 24px;
+        border-radius: 10px;
+        display: inline-block;
+      }
+      .result span {
+        color: #fbbf24;
+        font-weight: 700;
+      }
+      input[type="file"] {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Găsește coordonatele pe minimap</h2>
+    <p>Încarcă minimap-ul → click pe locul corect → copiază valorile</p>
+
+    <input type="file" id="fileInput" accept="image/*" />
+
+    <div class="wrapper" id="wrapper" style="display: none">
+      <img id="mapImg" />
+    </div>
+
+    <div class="result" id="result" style="display: none">
+      correct: { x: <span id="xVal">0</span>, y: <span id="yVal">0</span> }
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const wrapper = document.getElementById("wrapper");
+      const mapImg = document.getElementById("mapImg");
+      const result = document.getElementById("result");
+      const xVal = document.getElementById("xVal");
+      const yVal = document.getElementById("yVal");
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          mapImg.src = ev.target.result;
+          wrapper.style.display = "inline-block";
+          result.style.display = "none";
+          // șterge markerul vechi
+          const old = wrapper.querySelector(".marker");
+          if (old) old.remove();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      wrapper.addEventListener("click", (e) => {
+        const rect = wrapper.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        // rotunjim la 3 zecimale
+        const xRounded = Math.round(x * 1000) / 1000;
+        const yRounded = Math.round(y * 1000) / 1000;
+
+        xVal.textContent = xRounded;
+        yVal.textContent = yRounded;
+        result.style.display = "inline-block";
+
+        // pune marker
+        let marker = wrapper.querySelector(".marker");
+        if (!marker) {
+          marker = document.createElement("div");
+          marker.className = "marker";
+          wrapper.appendChild(marker);
+        }
+        marker.style.left = x * 100 + "%";
+        marker.style.top = y * 100 + "%";
+      });
+    </script>
+  </body>
+</html>
