@@ -3,82 +3,150 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
     <title>M2Guesr</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <!-- START SCREEN -->
     <div id="startScreen" class="screen active">
-      <div class="center-box">
-        <img
-          src="pics/logo.jpg"
-          alt="M2Guessr Logo"
-          class="logo"
-          id="gameLogo"
+      <div class="containter">
+        <!-- Bootstrap 4 -->
+        <link
+          rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         />
-        <h1>M2Guesr</h1>
-        <p>
-          5 rounds • Find on the minimap where the photo was taken<br />
-          Max score per round: 5000 points
-        </p>
-        <button id="btnStart">Start Game</button>
+
+        <div class="container bg">
+          <div class="game-description">
+            <span class="badge-game">Metin2 Game</span>
+
+            <h2>Metin2 <span>Guessr</span></h2>
+
+            <p class="intro">
+              Think you know the world of Metin2? Put your knowledge to the test
+              with <strong>Metin2 Guessr</strong>!
+            </p>
+
+            <p>
+              In this game, you'll be shown a random screenshot from Metin2 and
+              your goal is to <strong>guess the exact location</strong>
+              where the picture was taken.
+            </p>
+
+            <p>
+              Recognize familiar maps, towns, landscapes, dungeons and hidden
+              corners, and see how well you really know the world of Metin2.
+            </p>
+
+            <ul class="game-features">
+              <li>
+                <span class="icon"></span>
+                Guess the location
+              </li>
+
+              <li>
+                <span class="icon"></span>
+                Explore iconic Metin2 maps
+              </li>
+
+              <li>
+                <span class="icon"></span>
+                Earn points based on your accuracy
+              </li>
+
+              <li>
+                <span class="icon"></span>
+                Challenge yourself!
+              </li>
+            </ul>
+
+            <p>
+              Whether you're a veteran player or simply enjoy exploring Metin2,
+              <strong>Metin2 Guessr</strong> is a fun way to test your memory,
+              observation skills and knowledge of the game.
+            </p>
+            <button
+              class="btn-start-playing align-right d-flex justify-content-end"
+              id="btnStart"
+            >
+              <span class="play-icon">▶ Start Playing</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- GAME SCREEN -->
-    <div id="gameScreen" class="screen">
+    <div id="gameScreen" class="screen gamescreen">
       <div class="top-bar">
-        <div class="progress" id="progressText">Round 1 / 5</div>
         <div class="score-live">
-          Total Score: <span id="totalScore">0</span>
+          Total Score:
+          <span id="totalScore">0</span>
         </div>
       </div>
 
       <div class="game-grid">
-        <!-- LEFT: Photo -->
+        <!-- PHOTO -->
         <div class="panel">
           <h3 id="levelName">Location Photo</h3>
+
+          <p class="instruction">Guess the location below.</p>
+
           <div class="image-box">
             <img id="photoImg" alt="Location photo" />
           </div>
         </div>
 
-        <!-- RIGHT: Minimap -->
+        <!-- MINIMAP -->
         <div class="panel minimap-panel">
           <h3>Minimap</h3>
-          <p class="instruction">
-            Click on the minimap to pinpoint the exact location from the photo
-          </p>
+
+          <p class="instruction">Click on the minimap to guess.</p>
 
           <div class="minimap-container">
             <div class="minimap-wrapper" id="minimapWrapper">
               <img id="mapImg" alt="Minimap" />
             </div>
           </div>
-
-          <div class="zoom-controls">
-            <button id="btnZoomIn" title="Zoom In">+</button>
-            <button id="btnZoomOut" title="Zoom Out">−</button>
-            <button id="btnZoomReset" title="Reset Zoom">Reset</button>
-          </div>
         </div>
       </div>
-
       <div class="status info" id="status">
-        Click on the minimap to make your guess.
+        Click on the <strong>minimap</strong> to choose your location. You can
+        change your answer before locking it.
       </div>
 
+      <div class="controls">
+        <button id="btnLock" class="btn-lock" disabled>🔒 Lock Answer</button>
+
+        <button id="btnNext" class="hidden" disabled>Next Round →</button>
+      </div>
+      <!-- STATUS -->
+      <div class="status info" id="status">
+        Click on the <strong>minimap</strong>
+        to make your guess.
+      </div>
+
+      <!-- NEXT BUTTON -->
       <div class="controls">
         <button id="btnNext" class="hidden" disabled>Next Round →</button>
       </div>
     </div>
 
     <!-- FINAL SCREEN -->
+
     <div id="finalScreen" class="screen">
       <div class="center-box">
         <h2>Game Over!</h2>
+
         <div class="big-score" id="finalScore">0</div>
+
         <p id="finalMessage">Well played!</p>
+
         <button id="btnReplay">Play Again</button>
       </div>
     </div>

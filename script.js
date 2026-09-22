@@ -1,7 +1,3 @@
-// ============================================
-//  AICI EDITEZI RUNDLELE (foarte ușor)
-//  x și y sunt între 0 și 1 (0 = stânga/sus, 1 = dreapta/jos)
-// ============================================
 const levels = [
   {
     name: "Round 1 - Easy",
@@ -35,51 +31,68 @@ const levels = [
   },
 ];
 
-// ===== STATE =====
 let currentIndex = 0;
 let totalScore = 0;
-let hasGuessed = false;
-let correctPoint = null;
+
 let guessPoint = null;
+let correctPoint = null;
 
-// Zoom state
-let currentZoom = 1;
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 3;
-const ZOOM_STEP = 0.4;
+let hasGuessed = false;
+let answerLocked = false;
+let currentRoundScore = 0;
 
-// ===== DOM =====
+// ========================================
+// DOM ELEMENTS
+// ========================================
+
 const startScreen = document.getElementById("startScreen");
 const gameScreen = document.getElementById("gameScreen");
 const finalScreen = document.getElementById("finalScreen");
 
-const progressText = document.getElementById("progressText");
 const totalScoreEl = document.getElementById("totalScore");
+
 const levelName = document.getElementById("levelName");
+
 const photoImg = document.getElementById("photoImg");
+
 const mapImg = document.getElementById("mapImg");
+
 const minimapWrapper = document.getElementById("minimapWrapper");
+
 const statusEl = document.getElementById("status");
+
+const btnLock = document.getElementById("btnLock");
+
 const btnNext = document.getElementById("btnNext");
+
 const finalScoreEl = document.getElementById("finalScore");
+
 const finalMessage = document.getElementById("finalMessage");
 
-const btnZoomIn = document.getElementById("btnZoomIn");
-const btnZoomOut = document.getElementById("btnZoomOut");
-const btnZoomReset = document.getElementById("btnZoomReset");
+// ========================================
+// SHOW SCREEN
+// ========================================
 
-// ===== HELPERS =====
 function showScreen(screen) {
-  document
-    .querySelectorAll(".screen")
-    .forEach((s) => s.classList.remove("active"));
+  document.querySelectorAll(".screen").forEach((s) => {
+    s.classList.remove("active");
+  });
+
   screen.classList.add("active");
 }
+
+// ========================================
+// SET STATUS
+// ========================================
 
 function setStatus(text, type = "info") {
   statusEl.innerHTML = text;
   statusEl.className = "status " + type;
 }
+
+// ========================================
+// CLEAR MARKERS
+// ========================================
 
 function clearMarkers() {
   minimapWrapper
@@ -87,151 +100,361 @@ function clearMarkers() {
     .forEach((el) => el.remove());
 }
 
+// ========================================
+// ADD MARKER
+// ========================================
+
 function addMarker(point, cls) {
-  const m = document.createElement("div");
-  m.className = "marker " + cls;
-  m.style.left = point.x * 100 + "%";
-  m.style.top = point.y * 100 + "%";
-  minimapWrapper.appendChild(m);
+  const marker = document.createElement("div");
+
+  marker.className = "marker " + cls;
+
+  marker.style.left = point.x * 100 + "%";
+
+  marker.style.top = point.y * 100 + "%";
+
+  minimapWrapper.appendChild(marker);
 }
+
+// ========================================
+// DRAW LINE
+// ========================================
 
 function drawLine(p1, p2) {
   const line = document.createElement("div");
+
   line.className = "line";
 
   const dx = (p2.x - p1.x) * minimapWrapper.offsetWidth;
+
   const dy = (p2.y - p1.y) * minimapWrapper.offsetHeight;
+
   const len = Math.sqrt(dx * dx + dy * dy);
+
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
 
   line.style.width = len + "px";
+
   line.style.left = p1.x * 100 + "%";
+
   line.style.top = p1.y * 100 + "%";
+
   line.style.transform = `rotate(${angle}deg)`;
+
   minimapWrapper.appendChild(line);
 }
 
+// ========================================
+// GET CLICK POSITION
+// ========================================
+
 function getClickPoint(e) {
   const rect = minimapWrapper.getBoundingClientRect();
+
   return {
     x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+
     y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
   };
 }
 
+// ========================================
+// CALCULATE SCORE
+// ========================================
+
 function calcScore(p1, p2) {
   const dx = p1.x - p2.x;
+
   const dy = p1.y - p2.y;
+
   const dist = Math.sqrt(dx * dx + dy * dy);
+
   const score = Math.max(0, Math.round(5000 * (1 - dist / Math.SQRT2)));
-  return { score, dist };
+
+  return {
+    score,
+    dist,
+  };
 }
 
-function applyZoom() {
-  minimapWrapper.style.transform = `scale(${currentZoom})`;
-}
+// ========================================
+// LOAD LEVEL
+// ========================================
 
-// ===== LOAD LEVEL =====
 function loadLevel(index) {
   const level = levels[index];
+
   currentIndex = index;
-  hasGuessed = false;
-  correctPoint = level.correct;
+
   guessPoint = null;
+  correctPoint = level.correct;
 
-  // Reset zoom
-  currentZoom = 1;
-  applyZoom();
+  hasGuessed = false;
+  answerLocked = false;
 
-  progressText.textContent = `Round ${index + 1} / ${levels.length}`;
+  currentRoundScore = 0;
+
   levelName.textContent = level.name;
+
   photoImg.src = level.photo;
+
   mapImg.src = level.map;
 
   clearMarkers();
+
+  // Lock Answer disabled
+  btnLock.disabled = true;
+
+  btnLock.classList.remove("hidden");
+
+  // Next disabled/hidden
   btnNext.classList.add("hidden");
+
   btnNext.disabled = true;
 
-  setStatus("Click on the minimap to pinpoint the location from the photo.");
+  btnNext.textContent =
+    currentIndex < levels.length - 1 ? "Next Round →" : "See Final Result";
+
+  setStatus(
+    `
+      Click on the <strong>minimap</strong>
+      to choose your location.
+      <br>
+      <small>
+        You can change your answer
+        until you lock it.
+      </small>
+    `,
+    "info",
+  );
 }
 
-// ===== CLICK ON MINIMAP =====
-minimapWrapper.addEventListener("click", (e) => {
-  if (hasGuessed) return;
+// ========================================
+// MINIMAP CLICK
+// ========================================
 
+minimapWrapper.addEventListener("click", (e) => {
+  // După Lock nu mai permitem modificarea
+  if (answerLocked) {
+    return;
+  }
+
+  // Salvăm noua poziție
   guessPoint = getClickPoint(e);
+
   hasGuessed = true;
 
+  /*
+   * Înainte de Lock NU afișăm:
+   * - poziția corectă
+   * - linia
+   * - scorul
+   * - distanța
+   *
+   * Arătăm doar poziția aleasă de player.
+   */
+
   clearMarkers();
-  addMarker(correctPoint, "correct");
+
   addMarker(guessPoint, "guess");
+
+  // Activăm Lock Answer
+  btnLock.disabled = false;
+
+  setStatus(
+    `
+        <strong>Location selected.</strong>
+        <br>
+        <small>
+          Click the map again to change it,
+          or lock your answer when ready.
+        </small>
+      `,
+    "info",
+  );
+});
+
+// ========================================
+// LOCK ANSWER
+// ========================================
+
+btnLock.addEventListener("click", () => {
+  // Nu putem face Lock fără un guess
+  if (!hasGuessed || !guessPoint) {
+    return;
+  }
+
+  // Blocăm răspunsul
+  answerLocked = true;
+
+  // Dezactivăm butonul Lock
+  btnLock.disabled = true;
+
+  btnLock.textContent = "🔒 Answer Locked";
+
+  /*
+   * Acum dezvăluim răspunsul corect.
+   */
+
+  clearMarkers();
+
+  // Marker poziție corectă
+  addMarker(correctPoint, "correct");
+
+  // Marker poziție player
+  addMarker(guessPoint, "guess");
+
+  // Linie între cele două
   drawLine(correctPoint, guessPoint);
 
+  // Calculăm scorul
   const { score, dist } = calcScore(correctPoint, guessPoint);
-  totalScore += score;
+
+  currentRoundScore = score;
+
+  // Adăugăm scorul o singură dată
+  totalScore += currentRoundScore;
+
   totalScoreEl.textContent = totalScore;
 
   const distPct = (dist * 100).toFixed(1);
+
+  // Determinăm tipul statusului
   const type = score >= 4000 ? "success" : score >= 2000 ? "info" : "error";
 
+  /*
+   * Acum afișăm rezultatul final al rundei.
+   */
+
   setStatus(
-    `<span>Round score: <strong>${score}</strong> / 5000 &nbsp;•&nbsp; Distance: ${distPct}%</span>`,
+    `
+    <div class="result-title">
+      Round Complete!
+    </div>
+
+    <div class="round-result">
+      <span>
+        Round Score:
+        <strong>${score}</strong>
+        / 5000
+      </span>
+
+      <span>
+        Distance:
+        <strong>${distPct}%</strong>
+      </span>
+    </div>
+
+    <div class="answer-result">
+      <span class="correct-dot"></span>
+      Correct location
+    </div>
+
+    <div class="answer-result">
+      <span class="guess-dot"></span>
+      Your guess
+    </div>
+  `,
     type,
   );
+  /*
+   * Abia acum apare Next Round.
+   */
 
   btnNext.classList.remove("hidden");
+
   btnNext.disabled = false;
+
   btnNext.textContent =
     currentIndex < levels.length - 1 ? "Next Round →" : "See Final Result";
 });
 
-// ===== ZOOM CONTROLS =====
-btnZoomIn.addEventListener("click", () => {
-  if (currentZoom < MAX_ZOOM) {
-    currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
-    applyZoom();
-  }
-});
+// ========================================
+// START GAME
+// ========================================
 
-btnZoomOut.addEventListener("click", () => {
-  if (currentZoom > MIN_ZOOM) {
-    currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
-    applyZoom();
-  }
-});
-
-btnZoomReset.addEventListener("click", () => {
-  currentZoom = 1;
-  applyZoom();
-});
-
-// ===== BUTTONS =====
 document.getElementById("btnStart").addEventListener("click", () => {
   totalScore = 0;
+
+  currentIndex = 0;
+
+  currentRoundScore = 0;
+
   totalScoreEl.textContent = "0";
+
   showScreen(gameScreen);
+
   loadLevel(0);
 });
+
+// ========================================
+// NEXT ROUND
+// ========================================
 
 btnNext.addEventListener("click", () => {
   if (currentIndex < levels.length - 1) {
     loadLevel(currentIndex + 1);
-  } else {
-    finalScoreEl.textContent = totalScore;
-    const maxPossible = levels.length * 5000;
-    const percent = Math.round((totalScore / maxPossible) * 100);
 
-    let msg = "";
-    if (percent >= 85) msg = "Excellent! Eagle eyes!";
-    else if (percent >= 60) msg = "Very good! Almost perfect.";
-    else if (percent >= 40) msg = "Decent. Keep practicing.";
-    else msg = "Try again! You can do better.";
-
-    finalMessage.textContent = `${msg} (${percent}% of maximum)`;
-    showScreen(finalScreen);
+    return;
   }
+
+  // ====================================
+  // FINAL RESULT
+  // ====================================
+
+  finalScoreEl.textContent = totalScore;
+
+  const maxPossible = levels.length * 5000;
+
+  const percent = Math.round((totalScore / maxPossible) * 100);
+
+  let msg = "";
+
+  if (percent >= 85) {
+    msg = "Excellent! Eagle eyes!";
+  } else if (percent >= 60) {
+    msg = "Very good! Almost perfect.";
+  } else if (percent >= 40) {
+    msg = "Decent. Keep practicing.";
+  } else {
+    msg = "Try again! You can do better.";
+  }
+
+  finalMessage.textContent = `${msg} (${percent}% of maximum)`;
+
+  showScreen(finalScreen);
 });
 
+// ========================================
+// REPLAY
+// ========================================
+
 document.getElementById("btnReplay").addEventListener("click", () => {
+  currentIndex = 0;
+
+  totalScore = 0;
+
+  currentRoundScore = 0;
+
+  guessPoint = null;
+
+  correctPoint = null;
+
+  hasGuessed = false;
+
+  answerLocked = false;
+
+  totalScoreEl.textContent = "0";
+
+  btnLock.disabled = true;
+
+  btnLock.textContent = "🔒 Lock Answer";
+
+  btnNext.classList.add("hidden");
+
+  btnNext.disabled = true;
+
+  clearMarkers();
+
   showScreen(startScreen);
 });
